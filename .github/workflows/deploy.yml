@@ -1,36 +1,28 @@
-name: CD - Deploy to AWS
+name: CD
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
       - name: Verify Secrets (Masked in Logs)
         run: |
           echo "Deploying to AWS:"
           echo "Host: ${{ secrets.AWS_HOST }}"
           echo "User: ${{ secrets.AWS_USER }}"
           echo "Key (First 10 chars): $(echo "${{ secrets.AWS_PRIVATE_KEY }}" | cut -c1-10)"
-      
       - name: Deploy to EC2
-        uses: appleboy/ssh-action@v0.1.8
+        uses: appleboy/ssh-action@master
         with:
-            host: ${{ secrets.AWS_HOST }}
-            username: ${{ secrets.AWS_USER }}
-            key: ${{ secrets.AWS_PRIVATE_KEY }}  # Use private key instead of password
-            script: |
-                echo "Connected to AWS EC2"
-                cd fastapi-book-project
-                git stash
-                git pull origin main
-                source venv/bin/activate
-                pip install -r requirements.txt
-                systemctl restart fastapi
+          host: ${{ secrets.AWS_HOST }}
+          username: ${{ secrets.AWS_USER }}
+          key: ${{ secrets.AWS_PRIVATE_KEY }}
+          script: |
+            cd fastapi-book-project
+            git pull
+            source venv/bin/activate
+            pip install -r requirements.txt
+            sudo systemctl restart fastapi
