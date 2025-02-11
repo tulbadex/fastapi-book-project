@@ -32,15 +32,18 @@ jobs:
             fi
             
             cd fastapi-book-project
-            git pull
+            # git pull
+            # Pull the latest code
+            git stash
+            git pull origin main
             
             # Set up virtual environment if it doesn't exist
-            if [ ! -d "venv" ]; then
-              python3 -m venv venv
-            fi
+            # if [ ! -d "venv" ]; then
+            #   python3 -m venv venv
+            # fi
             
-            source venv/bin/activate
-            pip install -r requirements.txt
+            # source venv/bin/activate
+            # pip install -r requirements.txt
 
             # Stop existing containers
             docker-compose down || true
@@ -52,4 +55,4 @@ jobs:
             docker ps
             
             # Restart FastAPI service
-            sudo systemctl restart fastapi
+            # sudo systemctl restart fastapi
