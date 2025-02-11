@@ -41,6 +41,15 @@ jobs:
             
             source venv/bin/activate
             pip install -r requirements.txt
+
+            # Stop existing containers
+            docker-compose down || true
+            
+            # Build and start containers
+            docker-compose up --build -d
+            
+            # Verify containers are running
+            docker ps
             
             # Restart FastAPI service
             sudo systemctl restart fastapi
