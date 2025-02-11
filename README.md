@@ -129,6 +129,120 @@ The API includes proper error handling for:
 - Invalid genre types
 - Malformed requests
 
+## Deployment
+
+### Prerequisites
+
+- AWS Account
+- EC2 Instance (Ubuntu 22.04 LTS)
+- Domain Name (optional)
+- SSH Key Pair
+
+### Deployment Steps
+
+1. **Set up EC2 Instance**
+
+   - Launch an EC2 instance with Ubuntu 22.04 LTS
+   - Configure Security Group to allow:
+     - HTTP (80)
+     - HTTPS (443)
+     - SSH (22)
+
+2. **Configure GitHub Secrets**
+
+   Add the following secrets to your GitHub repository:
+   - `AWS_HOST`: EC2 instance public IP
+   - `AWS_USER`: ubuntu
+   - `AWS_PRIVATE_KEY`: Your EC2 private key (.pem file content)
+
+3. **Set up Server**
+
+   SSH into your EC2 instance:
+   ```bash
+   ssh -i your-key.pem ubuntu@your-ec2-ip
+   ```
+
+   Install required packages:
+   ```bash
+   sudo apt update
+   sudo apt install python3-pip python3.10-venv nginx -y
+   ```
+
+4. **Configure Nginx**
+
+   Create Nginx configuration:
+   ```bash
+   sudo nano /etc/nginx/sites-available/fastapi
+   ```
+
+   Add the configuration:
+   ```nginx
+   server {
+       listen 80;
+       server_name your_domain_or_ip;
+
+       location / {
+           proxy_pass http://127.0.0.1:8000;
+           proxy_http_version 1.1;
+           proxy_set_header Upgrade $http_upgrade;
+           proxy_set_header Connection 'upgrade';
+           proxy_set_header Host $host;
+           proxy_cache_bypass $http_upgrade;
+       }
+   }
+   ```
+
+   Enable the site:
+   ```bash
+   sudo ln -s /etc/nginx/sites-available/fastapi /etc/nginx/sites-enabled/
+   sudo nginx -t
+   sudo systemctl restart nginx
+   ```
+
+5. **Set up Systemd Service**
+
+   Create service file:
+   ```bash
+   sudo nano /etc/systemd/system/fastapi.service
+   ```
+
+   Add configuration:
+   ```ini
+   [Unit]
+   Description=FastAPI Book Project
+   After=network.target
+
+   [Service]
+   User=ubuntu
+   Group=ubuntu
+   WorkingDirectory=/home/ubuntu/fastapi-book-project
+   Environment="PATH=/home/ubuntu/fastapi-book-project/venv/bin"
+   ExecStart=/home/ubuntu/fastapi-book-project/venv/bin/uvicorn api.main:app --host 0.0.0.0 --port 8000
+
+   [Install]
+   WantedBy=multi-user.target
+   ```
+
+   Enable and start the service:
+   ```bash
+   sudo systemctl daemon-reload
+   sudo systemctl enable fastapi
+   sudo systemctl start fastapi
+   ```
+
+## CI/CD Pipeline
+
+The project uses GitHub Actions for CI/CD:
+
+- **CI Pipeline**: Runs on pull requests to main branch
+  - Runs pytest
+  - Verifies code quality
+
+- **CD Pipeline**: Runs on push to main branch
+  - Automatically deploys to EC2
+  - Updates application
+  - Restarts service
+
 ## Contributing
 
 1. Fork the repository
