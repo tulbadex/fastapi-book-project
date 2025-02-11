@@ -24,9 +24,9 @@ jobs:
       run: |
         pytest
 
-        - name: Test Docker Build
-        run: |
-          docker build -t fastapi-app .
-          docker run -d --name test-container -p 8000:8000 fastapi-app
-          sleep 5
-          curl http://localhost:8000/api/v1/books
+    - name: Test Docker Build
+      run: |
+        docker build -t fastapi-app .
+        docker run -d --name test-container -p 8000:8000 fastapi-app
+        sleep 5
+        curl http://localhost:8000/api/v1/books
